@@ -45,16 +45,16 @@ class Day:
             self.day_obj = Saturday
         elif self.day_name == "SUNDAY":
             self.day_obj = Sunday
-        return self.day_obj
 
     def fill_tasks(self):
         with db:
-            for k in Monday().select(Monday.task):
+            for k in self.day_obj.select(self.day_obj.task):
                 self.tasks.append(k.task)
 
     def add_task(self, time, task_text):
         with db:
-            self.day_obj.insert(task=Task(time, task_text).task).execute()
+            local_task = Task(time, task_text)
+            self.day_obj.insert(task=local_task).execute()
 
     def remove_task(self, full_task_text):
         with db:
@@ -78,13 +78,6 @@ class Week:
         ]
 
 
-class CompleteButton(QPushButton):
-    def __init__(self, position, day_name):
-        super().__init__()
-        self.position = position
-        self.day_name = day_name
-
-
 class Assembly(QWidget):
     SCREEN_W = GetSystemMetrics(0) // 1.2
     SCREEN_H = GetSystemMetrics(1) // 1.8
@@ -93,19 +86,35 @@ class Assembly(QWidget):
         super().__init__()
         self.setStyleSheet("background-color: #293133")
         self.setGeometry(300, 300, self.SCREEN_W, self.SCREEN_H)
+
+        self.set_default_size_button = QPushButton(self)
+        self.set_default_size_button.clicked.connect(self.set_default_size)
+        self.set_default_size_button.setText("Set Default Size")
+        self.set_default_size_button.setGeometry(self.SCREEN_W * 0.865, 7, self.SCREEN_W // 9, self.SCREEN_H // 20)
+        self.set_default_size_button.setStyleSheet("QPushButton\
+                         {background-color: #8b00ff; border-radius: 10px; font: bold 14px;min-width: 3em; padding: 1px;\
+                          color: white;}"
+                                                   "QPushButton:pressed { background-color: #990000; border-radius: "
+                                                   "10px;\
+                                            font: bold 14px;min-width: 3em; padding: 1px; color: white;}"
+                                                   "QPushButton:pressed { background-color: #6600ff; border-radius: "
+                                                   "10px;\
+                                                    font: bold 14px;min-width: 3em; padding: 1px; color: white;}")
+        self.set_default_size_button.show()
+
         self.show()
         self.widget: object
         self.day_column: object
         self.task_column: object
         self.complete_button: object
         self.cancel_button: object
-        self.draw_main_menu()
         self.draw_columns()
         self.draw_day_names()
+        self.draw_add_tasks_buttons()
+        self.draw_tasks()
 
-    def draw_main_menu(self):
-        # self.widget = QWidget(self)
-        pass
+    def set_default_size(self):
+        self.resize(self.SCREEN_W, self.SCREEN_H)
 
     def draw_columns(self):
         column_list = Week()
@@ -115,7 +124,7 @@ class Assembly(QWidget):
         __h = self.SCREEN_H * 4
         __column_space = self.SCREEN_W // 70
         __day_count = 1
-        for i in column_list.days_list:
+        for _ in column_list.days_list:
             self.column_label = QLabel(self)
             self.column_label.setGeometry(__x, __y, __w, __h)
 
@@ -153,10 +162,73 @@ class Assembly(QWidget):
             __x = __x + __w + __column_space
             __day_count += 1
 
+    def draw_add_tasks_buttons(self):
+        __x = self.SCREEN_W // 85
+        __y = self.SCREEN_H // 8
+        __w = self.SCREEN_W // 8.5
+        __h = self.SCREEN_H // 28
+        __column_space = self.SCREEN_W // 41
+        __day_count = 1
+        for i, k in enumerate(Week().days_list):
+            self.add_task_button = QPushButton(self)
+            self.add_task_button.setGeometry(__x + __w // 9, __y, __w * 0.8, __h)
+            self.add_task_button.setText("Add new task")
+            if __day_count > 5:
+                self.add_task_button.setStyleSheet("QPushButton\
+                 {background-color: #ff0000; border-radius: 10px; font: bold 14px;min-width: 3em; padding: 1px;\
+                  color: white;}"
+                                                   "QPushButton:pressed { background-color: #990000; border-radius: "
+                                                   "10px;\
+                                                    font: bold 14px;min-width: 3em; padding: 1px; color: white;}")
+            else:
+                self.add_task_button.setStyleSheet("QPushButton\
+                 {background-color: green; border-radius: 10px; font: bold 14px;min-width: 3em; padding: 1px;\
+                  color: white;}"
+                                                   "QPushButton:pressed { background-color: #004d00;"
+                                                   "border-radius: 10px;font: bold 14px;min-width: 3em;\
+                                                 padding: 1px; color: white;}")
+
+            self.add_task_button.clicked.connect(Week().days_list[i].add_task("19:20", "hello worыld"))
+            self.add_task_button.clicked.connect(self.draw_tasks)
+            self.add_task_button.clicked.connect(self.draw_add_tasks_buttons)
+            self.add_task_button.show()
+            __x = __x + __w + __column_space
+            __day_count += 1
+
     def draw_tasks(self):
-        pass
+        Week()
+        __x = self.SCREEN_W // 85
+        __y = self.SCREEN_H // 5
+        __w = self.SCREEN_W // 8.5
+        __h = self.SCREEN_H // 14
+        __column_space = self.SCREEN_W // 41
+        __day_count = 1
+        for i in Week().days_list:
+            for k in i.tasks:
+                self.task_complete_button = QPushButton(self)
+                self.task_complete_button.setGeometry(__x, __y, __w, __h)
+                self.task_complete_button.setText(str(k))
+                if __day_count > 5:
+                    self.task_complete_button.setStyleSheet("QPushButton\
+                     {background-color: #ff0000; border-radius: 10px; font: bold 14px;min-width: 3em; padding: 1px;\
+                      color: white;}"
+                                                            "QPushButton:pressed { background-color: #990000; "
+                                                            "border-radius: 10px;"
+                                                            "font: bold 14px;min-width: 3em; padding: 1px; color: white;}")
+                else:
+                    self.task_complete_button.setStyleSheet("QPushButton\
+                     {background-color: green; border-radius: 10px; font: bold 14px;min-width: 3em; padding: 1px;\
+                      color: white;}"
+                                                            "QPushButton:pressed { background-color: #004d00;"
+                                                            "border-radius: 10px;font: bold 14px;min-width: 3em;\
+                                                     padding: 1px; color: white;}")
+                self.task_complete_button.show()
+                __y += __h + 20
+            __y = self.SCREEN_H // 5
+            __x = __x + __w + __column_space
 
 
-app = QApplication()
-assembly = Assembly()
-sys.exit(app.exec())
+if __name__ == '__main__':
+    app = QApplication()
+    assembly = Assembly()
+    sys.exit(app.exec())
