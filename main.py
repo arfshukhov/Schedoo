@@ -117,7 +117,7 @@ class AddTaskWindow(QWidget):
     def control_text_length(self):
         text = self.text_space.toPlainText()
 
-        if len(text) > 80:
+        if len(text) >= 80:
             self.text_space.setText(text[0: 80])
         else:
             pass

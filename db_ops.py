@@ -1,49 +1,34 @@
 from peewee import *
 
+
 db = SqliteDatabase("tasks.db")
 
 
-class DayTask(Model):
-    task = TextField()
+class WeekDB(Model):
+    monday = CharField()
+    tuesday = CharField()
+    wednesday = CharField()
+    thursday = CharField()
+    friday = CharField()
+    saturday = CharField()
+    sunday = CharField()
 
     class Meta:
         database = db
 
 
-class Monday(DayTask):
-    class Meta:
-        db_table = "monday"
-
-
-class Tuesday(DayTask):
-    class Meta:
-        db_table = "tuesday"
-
-
-class Wednesday(DayTask):
-    class Meta:
-        db_table = "wednesday"
-
-
-class Thursday(DayTask):
-    class Meta:
-        db_table = "thursday"
-
-
-class Friday(DayTask):
-    class Meta:
-        db_table = "friday"
-
-
-class Saturday(DayTask):
-    class Meta:
-        db_table = "saturday"
-
-
-class Sunday(DayTask):
-    class Meta:
-        db_table = "sunday"
-
-
 with db:
-    db.create_tables([Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday])
+    db.create_tables([WeekDB])
+
+
+class Task:
+    def __init__(self, time, task_text):
+        self.task_text: str = " - ".join([time, task_text])
+
+
+def add_task(time, task, day_name):
+    local_task1 = Task(time, task).task_text
+    WeekDB.insert(
+        {day_name: local_task1}
+    ).execute()
+
